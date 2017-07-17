@@ -37,7 +37,7 @@ function Get-DNSARecords {
         $params.Add("Credential", $Credentials)
     }
     Write-Output "Acquiring MicrosoftDNS_AType WmiObject..."
-    $dnsRecords = Get-WmiObject @params | Select-Object -Property OwnerName,RecordData,@{n="Timestamp";e={If ($_.Timestamp -eq "0") {"0"} else ([datetime]"1.1.1601").AddHours($_.Timestamp)}}
+    $dnsRecords = Get-WmiObject @params | Select-Object -Property OwnerName,RecordData,@{n="Timestamp";e={If ($_.Timestamp -eq "0") {"0"} else {([datetime]"1.1.1601").AddHours($_.Timestamp)}}}
     Write-Output ("Found *{0}* records." -f $dnsRecords.Count)
     Write-Output ("Writing to {0}..." -f $CSVPath)
     $dnsRecords | Export-CSV -not $CSVPath
