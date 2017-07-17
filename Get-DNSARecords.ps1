@@ -14,20 +14,20 @@ function Get-DNSARecords {
     .PARAMETER Password
         Password to use for authentication (optional).
     .EXAMPLE
-        Get-DNSARecords -Server 192.168.1.1 -CSVPath c:\users\public\downloads\dns.csv -UserName Administrator -Password Password123
+        Get-DNSARecords -Server 192.168.1.1 -CSVPath c:\temp\dns.csv -UserName DOMAIN\Administrator -Password Password123
     .LINK
-        https://gist.github.com/blark/510cc216416a6160d703bedc7f880b4b
+        https://github.com/blark/redteam_ps
     #>
     [CmdletBinding()]
     param(
         [Parameter(Mandatory=$True)][string]$Server,
-        [string]$CSVPath="dns.csv",
+        [string]$CSVPath="c:\users\public\downloads\dns.csv",
         [string]$UserName,
         [string]$Password
     )
     # Set up a hash table to to store parameters for Get-WmiObject
     $params=@{'Class'='MicrosoftDNS_AType'
-		      'NameSpace'='Root\MicrosoftDNS'
+	      'NameSpace'='Root\MicrosoftDNS'
               'ComputerName'=$Server
     }
     if ($UserName -and $Password) {
@@ -37,7 +37,7 @@ function Get-DNSARecords {
         $params.Add("Credential", $Credentials)
     }
     Write-Output "Acquiring MicrosoftDNS_AType WmiObject..."
-    $dnsRecords = Get-WmiObject @params | Select-Object -Property OwnerName,RecordData,@{n="Timestamp";e={([datetime]"1.1.1601").AddHours($_.Timestamp)}}
+    $dnsRecords = Get-WmiObject @params | Select-Object -Property OwnerName,RecordData,@{n="Timestamp";e={If ($_.Timestamp -eq "0") {"0"} else ([datetime]"1.1.1601").AddHours($_.Timestamp)}}
     Write-Output ("Found *{0}* records." -f $dnsRecords.Count)
     Write-Output ("Writing to {0}..." -f $CSVPath)
     $dnsRecords | Export-CSV -not $CSVPath
